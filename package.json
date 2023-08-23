@@ -1,0 +1,19 @@
+{
+  "name": "UNCHAIN-AVAX-Messenger",
+  "version": "1.0.0",
+  "description": "Message dapp that allows text and tokens (AVAX) to be exchanged.",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "contract": "yarn workspace contract",
+    "client": "yarn workspace client",
+    "test": "yarn contract test"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}
