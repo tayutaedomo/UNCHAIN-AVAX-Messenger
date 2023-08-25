@@ -14,6 +14,10 @@ contract Messenger {
     }
 
     mapping (address => Message[]) private _messagesAtAddress;
+
+    event NewMessage(address sender, address receiver, uint256 depositInWei, uint256 timestamp, string text, bool isPending);
+    event MessageConfirmed(address receiver, uint256 index);
+
     constructor() payable {
         console.log("Here is my first smart contract!");
     }
@@ -31,18 +35,22 @@ contract Messenger {
                 true
             )
         );
+
+        emit NewMessage(msg.sender, _receiver, msg.value, block.timestamp, _text, true);
     }
 
     function accept(uint256 _index) public {
         _confirmMessage(_index);
-        Message storage message = _messagesAtAddress[msg.sender][_index];
+        Message memory message = _messagesAtAddress[msg.sender][_index];
         _sendAvax(message.receiver, message.depositInWei);
+        emit MessageConfirmed(message.receiver, _index);
     }
 
     function deny(uint256 _index) public payable {
         _confirmMessage(_index);
-        Message storage message = _messagesAtAddress[msg.sender][_index];
+        Message memory message = _messagesAtAddress[msg.sender][_index];
         _sendAvax(message.sender, message.depositInWei);
+        emit MessageConfirmed(message.receiver, _index);
     }
 
     function _confirmMessage(uint256 _index) private {
