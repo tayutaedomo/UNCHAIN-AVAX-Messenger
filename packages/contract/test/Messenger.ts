@@ -50,4 +50,89 @@ describe("Messenger", function () {
       expect(message.receiver).to.equal(otherAccount.address);
     });
   });
+
+  describe("Accept", function () {
+    it("isPending must be changed", async function () {
+      const { messenger, otherAccount } = await loadFixture(deployContract);
+      const firstIndex = 0;
+
+      await messenger.post("text", otherAccount.address);
+      const messages = await messenger.connect(otherAccount).getOwnMessages();
+      expect(messages[firstIndex].isPending).to.equal(true);
+
+      await messenger.connect(otherAccount).accept(firstIndex);
+      const messages2 = await messenger.connect(otherAccount).getOwnMessages();
+      expect(messages2[firstIndex].isPending).to.equal(false);
+    });
+
+    it("Should send the correct amount of tokens", async function () {
+      const { messenger, owner, otherAccount } = await loadFixture(
+        deployContract
+      );
+      const testDeposit = 10;
+
+      await messenger.post("text", otherAccount.address, {
+        value: testDeposit,
+      });
+
+      const firstIndex = 0;
+      await expect(
+        messenger.connect(otherAccount).accept(firstIndex)
+      ).to.changeEtherBalances(
+        [messenger, otherAccount],
+        [-testDeposit, testDeposit]
+      );
+    });
+
+    it("Should revert with the right error if called in duplicate", async function () {
+      const { messenger, otherAccount } = await loadFixture(deployContract);
+
+      await messenger.post("text", otherAccount.address, { value: 1 });
+      await messenger.connect(otherAccount).accept(0);
+      await expect(
+        messenger.connect(otherAccount).accept(0)
+      ).to.be.revertedWith("This message has already been confirmed");
+    });
+  });
+
+  describe("Deny", function () {
+    it("isPending must be changed", async function () {
+      const { messenger, otherAccount } = await loadFixture(deployContract);
+      const firstIndex = 0;
+
+      await messenger.post("text", otherAccount.address);
+      const messages = await messenger.connect(otherAccount).getOwnMessages();
+      expect(messages[firstIndex].isPending).to.equal(true);
+
+      await messenger.connect(otherAccount).deny(firstIndex);
+      const messages2 = await messenger.connect(otherAccount).getOwnMessages();
+      expect(messages2[firstIndex].isPending).to.equal(false);
+    });
+
+    it("Should send the correct amount of tokens", async function () {
+      const { messenger, owner, otherAccount } = await loadFixture(
+        deployContract
+      );
+      const testDeposit = 10;
+
+      await messenger.post("text", otherAccount.address, {
+        value: testDeposit,
+      });
+
+      const firstIndex = 0;
+      await expect(
+        messenger.connect(otherAccount).deny(firstIndex)
+      ).to.changeEtherBalances([messenger, owner], [-testDeposit, testDeposit]);
+    });
+
+    it("Should revert with the right error if called in duplicate", async function () {
+      const { messenger, otherAccount } = await loadFixture(deployContract);
+
+      await messenger.post("text", otherAccount.address, { value: 1 });
+      await messenger.connect(otherAccount).deny(0);
+      await expect(messenger.connect(otherAccount).deny(0)).to.be.revertedWith(
+        "This message has already been confirmed"
+      );
+    });
+  });
 });
