@@ -1,7 +1,7 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 
-import { Message } from "../../hooks/useMessengerContract";
-import styles from "./MessageCard.module.css";
+import { Message } from '../../hooks/useMessengerContract';
+import styles from './MessageCard.module.css';
 
 type Props = {
   message: Message;
@@ -23,7 +23,7 @@ export default function MessageCard({
       <p className={styles.text}>{message.text}</p>
       {message.isPending && (
         <div className={styles.container}>
-          <button className={styles.itme} onClick={onClickAccept}>
+          <button className={styles.item} onClick={onClickAccept}>
             accept
           </button>
           <button className={styles.item} onClick={onClickDeny}>
@@ -33,5 +33,5 @@ export default function MessageCard({
       )}
       <p className="styles.date">{message.timestamp.toDateString()}</p>
     </div>
-  )
+  );
 }

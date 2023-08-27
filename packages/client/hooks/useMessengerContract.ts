@@ -6,7 +6,7 @@ import { Messenger as MessengerType } from '../typechain-types';
 import { getEthereum } from '@/utils/ethereum';
 import abi from '@/utils/Messenger.json';
 
-const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const contractABI = abi.abi;
 
 export type Message = {
@@ -28,6 +28,8 @@ type ReturnUseMessengerContract = {
   processing: boolean;
   ownMessages: Message[];
   sendMessage: (props: PropsSendMessage) => void;
+  acceptMessage: (index: BigNumber) => void;
+  denyMessage: (index: BigNumber) => void;
 };
 
 type PropsUseMessengerContract = {
@@ -51,7 +53,7 @@ export const useMessengerContract = ({
         );
         const signer = provider.getSigner();
         const MessengerContract = new ethers.Contract(
-          contractAddress,
+          contractAddress!,
           contractABI,
           signer,
         ) as MessengerType;
@@ -115,6 +117,42 @@ export const useMessengerContract = ({
     }
   }
 
+  async function acceptMessage(index: BigNumber) {
+    if (!messengerContract) return;
+
+    try {
+      console.log('call accept with index:[%d]', index.toNumber());
+
+      const txn = await messengerContract.accept(index, { gasLimit: 300000 });
+      console.log('Processing...', txn.hash);
+      setProcessing(true);
+
+      await txn.wait();
+      console.log('Done --', txn.hash);
+      setProcessing(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function denyMessage(index: BigNumber) {
+    if (!messengerContract) return;
+
+    try {
+      console.log('call deny with index:[%d]', index.toNumber());
+
+      const txn = await messengerContract.deny(index, { gasLimit: 300000 });
+      console.log('Processing...', txn.hash);
+      setProcessing(true);
+
+      await txn.wait();
+      console.log('Done --', txn.hash);
+      setProcessing(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     getMessengerContract();
     getOwnMessages();
@@ -147,8 +185,24 @@ export const useMessengerContract = ({
       }
     };
 
+    const onMessageConfirmed = (receiver: string, index: BigNumber) => {
+      console.log(
+        'MessageConfirmed index:[%d] receiver: [%s]',
+        index.toNumber(),
+        receiver,
+      );
+
+      if (receiver.toLocaleLowerCase() === currentAccount) {
+        setOwnMessages((prevState) => {
+          prevState[index.toNumber()].isPending = false;
+          return [...prevState];
+        });
+      }
+    };
+
     if (messengerContract) {
       messengerContract.on('NewMessage', onNewMessage);
+      messengerContract.on('MessageConfirmed', onMessageConfirmed);
     }
 
     return () => {
@@ -162,5 +216,7 @@ export const useMessengerContract = ({
     processing,
     ownMessages,
     sendMessage,
+    acceptMessage,
+    denyMessage,
   };
 };
