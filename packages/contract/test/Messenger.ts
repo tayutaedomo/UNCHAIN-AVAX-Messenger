@@ -26,6 +26,40 @@ describe('Messenger', function () {
 
       expect(await messenger.numOfPendingLimits()).to.equal(numOfPendingLimits);
     });
+
+    it('Should set the right owner', async function () {
+      const { messenger, owner } = await loadFixture(deployContract);
+
+      expect(await messenger.owner()).to.equal(owner.address);
+    });
+  });
+
+  describe('Change limits', function () {
+    it('Should revert with the right error if called by other account', async function () {
+      const { messenger, otherAccount } = await loadFixture(deployContract);
+
+      await expect(
+        messenger.connect(otherAccount).changeNumOfPendingLimits(5),
+      ).to.be.revertedWith("You aren't the owner");
+    });
+
+    it('Should set the right number of pending limits after change', async function () {
+      const { messenger, numOfPendingLimits } = await loadFixture(
+        deployContract,
+      );
+      const newLimits = numOfPendingLimits + 1;
+
+      await messenger.changeNumOfPendingLimits(newLimits);
+      expect(await messenger.numOfPendingLimits()).to.equal(newLimits);
+    });
+
+    it('Should emit an event on change limits', async function () {
+      const { messenger } = await loadFixture(deployContract);
+      await expect(messenger.changeNumOfPendingLimits(10)).to.emit(
+        messenger,
+        'NumOfPendingLimitsChanged',
+      );
+    });
   });
 
   describe('Post', function () {

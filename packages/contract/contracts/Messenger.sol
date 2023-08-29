@@ -2,8 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "hardhat/console.sol";
+import "./Ownable.sol";
 
-contract Messenger {
+contract Messenger is Ownable {
     uint256 public numOfPendingLimits;
 
     struct Message {
@@ -27,11 +28,19 @@ contract Messenger {
         bool isPending
     );
     event MessageConfirmed(address receiver, uint256 index);
+    event NumOfPendingLimitsChanged(uint256 limits);
 
     constructor(uint256 _numOfPendingLimits) payable {
         console.log("Here is my first smart contract!");
 
+        ownable();
+
         numOfPendingLimits = _numOfPendingLimits;
+    }
+
+    function changeNumOfPendingLimits(uint256 _limits) external onlyOwner {
+        numOfPendingLimits = _limits;
+        emit NumOfPendingLimitsChanged(_limits);
     }
 
     function post(
