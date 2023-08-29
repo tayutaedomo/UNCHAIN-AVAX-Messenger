@@ -60,17 +60,31 @@ export declare namespace Messenger {
 export interface MessengerInterface extends utils.Interface {
   functions: {
     "accept(uint256)": FunctionFragment;
+    "changeNumOfPendingLimits(uint256)": FunctionFragment;
     "deny(uint256)": FunctionFragment;
     "getOwnMessages()": FunctionFragment;
+    "numOfPendingLimits()": FunctionFragment;
+    "owner()": FunctionFragment;
     "post(string,address)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "accept" | "deny" | "getOwnMessages" | "post"
+    nameOrSignatureOrTopic:
+      | "accept"
+      | "changeNumOfPendingLimits"
+      | "deny"
+      | "getOwnMessages"
+      | "numOfPendingLimits"
+      | "owner"
+      | "post"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "accept",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeNumOfPendingLimits",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -82,25 +96,41 @@ export interface MessengerInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "numOfPendingLimits",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
     functionFragment: "post",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "accept", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeNumOfPendingLimits",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "deny", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getOwnMessages",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "numOfPendingLimits",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "post", data: BytesLike): Result;
 
   events: {
     "MessageConfirmed(address,uint256)": EventFragment;
     "NewMessage(address,address,uint256,uint256,string,bool)": EventFragment;
+    "NumOfPendingLimitsChanged(uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "MessageConfirmed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewMessage"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NumOfPendingLimitsChanged"): EventFragment;
 }
 
 export interface MessageConfirmedEventObject {
@@ -129,6 +159,17 @@ export type NewMessageEvent = TypedEvent<
 >;
 
 export type NewMessageEventFilter = TypedEventFilter<NewMessageEvent>;
+
+export interface NumOfPendingLimitsChangedEventObject {
+  limits: BigNumber;
+}
+export type NumOfPendingLimitsChangedEvent = TypedEvent<
+  [BigNumber],
+  NumOfPendingLimitsChangedEventObject
+>;
+
+export type NumOfPendingLimitsChangedEventFilter =
+  TypedEventFilter<NumOfPendingLimitsChangedEvent>;
 
 export interface Messenger extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -162,6 +203,11 @@ export interface Messenger extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    changeNumOfPendingLimits(
+      _limits: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     deny(
       _index: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -170,6 +216,10 @@ export interface Messenger extends BaseContract {
     getOwnMessages(
       overrides?: CallOverrides
     ): Promise<[Messenger.MessageStructOutput[]]>;
+
+    numOfPendingLimits(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    owner(overrides?: CallOverrides): Promise<[string]>;
 
     post(
       _text: PromiseOrValue<string>,
@@ -183,6 +233,11 @@ export interface Messenger extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  changeNumOfPendingLimits(
+    _limits: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   deny(
     _index: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -191,6 +246,10 @@ export interface Messenger extends BaseContract {
   getOwnMessages(
     overrides?: CallOverrides
   ): Promise<Messenger.MessageStructOutput[]>;
+
+  numOfPendingLimits(overrides?: CallOverrides): Promise<BigNumber>;
+
+  owner(overrides?: CallOverrides): Promise<string>;
 
   post(
     _text: PromiseOrValue<string>,
@@ -204,6 +263,11 @@ export interface Messenger extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    changeNumOfPendingLimits(
+      _limits: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     deny(
       _index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -212,6 +276,10 @@ export interface Messenger extends BaseContract {
     getOwnMessages(
       overrides?: CallOverrides
     ): Promise<Messenger.MessageStructOutput[]>;
+
+    numOfPendingLimits(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
 
     post(
       _text: PromiseOrValue<string>,
@@ -246,11 +314,23 @@ export interface Messenger extends BaseContract {
       text?: null,
       isPending?: null
     ): NewMessageEventFilter;
+
+    "NumOfPendingLimitsChanged(uint256)"(
+      limits?: null
+    ): NumOfPendingLimitsChangedEventFilter;
+    NumOfPendingLimitsChanged(
+      limits?: null
+    ): NumOfPendingLimitsChangedEventFilter;
   };
 
   estimateGas: {
     accept(
       _index: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeNumOfPendingLimits(
+      _limits: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -260,6 +340,10 @@ export interface Messenger extends BaseContract {
     ): Promise<BigNumber>;
 
     getOwnMessages(overrides?: CallOverrides): Promise<BigNumber>;
+
+    numOfPendingLimits(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     post(
       _text: PromiseOrValue<string>,
@@ -274,12 +358,23 @@ export interface Messenger extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    changeNumOfPendingLimits(
+      _limits: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     deny(
       _index: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getOwnMessages(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    numOfPendingLimits(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     post(
       _text: PromiseOrValue<string>,
