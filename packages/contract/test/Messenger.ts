@@ -7,15 +7,26 @@ describe('Messenger', function () {
   async function deployContract() {
     const [owner, otherAccount] = await ethers.getSigners();
 
+    const numOfPendingLimits = 3;
     const funds = 100;
 
     const Messenger = await hre.ethers.getContractFactory('Messenger');
-    const messenger = await Messenger.deploy({
+    const messenger = await Messenger.deploy(numOfPendingLimits, {
       value: funds,
     } as Overrides);
 
-    return { messenger, funds, owner, otherAccount };
+    return { messenger, numOfPendingLimits, funds, owner, otherAccount };
   }
+
+  describe('Deployment', function () {
+    it('Should set the right number of pending message limits', async function () {
+      const { messenger, numOfPendingLimits } = await loadFixture(
+        deployContract,
+      );
+
+      expect(await messenger.numOfPendingLimits()).to.equal(numOfPendingLimits);
+    });
+  });
 
   describe('Post', function () {
     it('Should emit an event on post', async function () {
@@ -56,6 +67,21 @@ describe('Messenger', function () {
       expect(message.isPending).to.equal(true);
       expect(message.sender).to.equal(owner.address);
       expect(message.receiver).to.equal(otherAccount.address);
+    });
+
+    it('Should revert with the right error if exceed number of pending limits', async function () {
+      const { messenger, otherAccount, numOfPendingLimits } = await loadFixture(
+        deployContract,
+      );
+
+      for (let cnt = 1; cnt <= numOfPendingLimits; cnt++) {
+        await messenger.post('dummy', otherAccount.address);
+      }
+      await expect(
+        messenger.post('dummy', otherAccount.address),
+      ).to.be.revertedWith(
+        'The receiver has reached the number of pending limits',
+      );
     });
   });
 

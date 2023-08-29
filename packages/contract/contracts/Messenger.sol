@@ -4,6 +4,8 @@ pragma solidity ^0.8.17;
 import "hardhat/console.sol";
 
 contract Messenger {
+    uint256 public numOfPendingLimits;
+
     struct Message {
         address payable sender;
         address payable receiver;
@@ -14,6 +16,7 @@ contract Messenger {
     }
 
     mapping(address => Message[]) private _messagesAtAddress;
+    mapping(address => uint256) private _numOfPendingAtAddress;
 
     event NewMessage(
         address sender,
@@ -25,16 +28,24 @@ contract Messenger {
     );
     event MessageConfirmed(address receiver, uint256 index);
 
-    constructor() payable {
+    constructor(uint256 _numOfPendingLimits) payable {
         console.log("Here is my first smart contract!");
+
+        numOfPendingLimits = _numOfPendingLimits;
     }
 
     function post(
         string memory _text,
         address payable _receiver
     ) public payable {
+        require(
+            _numOfPendingAtAddress[msg.sender] < numOfPendingLimits,
+            "The receiver has reached the number of pending limits"
+        );
+        _numOfPendingAtAddress[msg.sender] += 1;
+
         console.log(
-            "%s posts text:[%s] token:[%]",
+            "%s posts text:[%s] token:[%s]",
             msg.sender,
             _text,
             msg.value
