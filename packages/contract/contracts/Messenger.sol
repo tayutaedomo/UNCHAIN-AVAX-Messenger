@@ -13,17 +13,32 @@ contract Messenger {
         bool isPending;
     }
 
-    mapping (address => Message[]) private _messagesAtAddress;
+    mapping(address => Message[]) private _messagesAtAddress;
 
-    event NewMessage(address sender, address receiver, uint256 depositInWei, uint256 timestamp, string text, bool isPending);
+    event NewMessage(
+        address sender,
+        address receiver,
+        uint256 depositInWei,
+        uint256 timestamp,
+        string text,
+        bool isPending
+    );
     event MessageConfirmed(address receiver, uint256 index);
 
     constructor() payable {
         console.log("Here is my first smart contract!");
     }
 
-    function post(string memory _text, address payable _receiver) public payable {
-        console.log("%s posts text:[%s] token:[%]", msg.sender, _text, msg.value);
+    function post(
+        string memory _text,
+        address payable _receiver
+    ) public payable {
+        console.log(
+            "%s posts text:[%s] token:[%]",
+            msg.sender,
+            _text,
+            msg.value
+        );
 
         _messagesAtAddress[_receiver].push(
             Message(
@@ -36,7 +51,14 @@ contract Messenger {
             )
         );
 
-        emit NewMessage(msg.sender, _receiver, msg.value, block.timestamp, _text, true);
+        emit NewMessage(
+            msg.sender,
+            _receiver,
+            msg.value,
+            block.timestamp,
+            _text,
+            true
+        );
     }
 
     function accept(uint256 _index) public {
@@ -56,8 +78,14 @@ contract Messenger {
     function _confirmMessage(uint256 _index) private {
         Message storage message = _messagesAtAddress[msg.sender][_index];
 
-        require(msg.sender == message.receiver, "Only the receiver can _confirmMessage the message");
-        require(message.isPending == true, "This message has already been confirmed");
+        require(
+            msg.sender == message.receiver,
+            "Only the receiver can _confirmMessage the message"
+        );
+        require(
+            message.isPending == true,
+            "This message has already been confirmed"
+        );
 
         message.isPending = false;
     }
