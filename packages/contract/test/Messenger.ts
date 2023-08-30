@@ -103,6 +103,21 @@ describe('Messenger', function () {
       expect(message.receiver).to.equal(otherAccount.address);
     });
 
+    it('Should increase the number of pending limits', async function () {
+      const { messenger, owner, otherAccount } = await loadFixture(
+        deployContract,
+      );
+
+      await messenger
+        .connect(owner)
+        .post('text', otherAccount.address, { value: 1 });
+
+      expect(await messenger.connect(owner).getNumOfOwnPending()).to.equal(0);
+      expect(
+        await messenger.connect(otherAccount).getNumOfOwnPending(),
+      ).to.equal(1);
+    });
+
     it('Should revert with the right error if exceed number of pending limits', async function () {
       const { messenger, otherAccount, numOfPendingLimits } = await loadFixture(
         deployContract,
@@ -146,6 +161,23 @@ describe('Messenger', function () {
       await messenger.connect(otherAccount).accept(firstIndex);
       const messages2 = await messenger.connect(otherAccount).getOwnMessages();
       expect(messages2[firstIndex].isPending).to.equal(false);
+    });
+
+    it('Should decrease the number of pending limits', async function () {
+      const { messenger, owner, otherAccount } = await loadFixture(
+        deployContract,
+      );
+      const firstIndex = 0;
+
+      await messenger.connect(owner).post('text1', otherAccount.address);
+      await messenger.connect(owner).post('text2', otherAccount.address);
+      expect(
+        await messenger.connect(otherAccount).getNumOfOwnPending(),
+      ).to.equal(2);
+      await messenger.connect(otherAccount).accept(firstIndex);
+      expect(
+        await messenger.connect(otherAccount).getNumOfOwnPending(),
+      ).to.equal(1);
     });
 
     it('Should send the correct amount of tokens', async function () {
@@ -205,6 +237,23 @@ describe('Messenger', function () {
       await messenger.connect(otherAccount).deny(firstIndex);
       const messages2 = await messenger.connect(otherAccount).getOwnMessages();
       expect(messages2[firstIndex].isPending).to.equal(false);
+    });
+
+    it('Should decrease the number of pending limits', async function () {
+      const { messenger, owner, otherAccount } = await loadFixture(
+        deployContract,
+      );
+      const firstIndex = 0;
+
+      await messenger.connect(owner).post('text1', otherAccount.address);
+      await messenger.connect(owner).post('text2', otherAccount.address);
+      expect(
+        await messenger.connect(otherAccount).getNumOfOwnPending(),
+      ).to.equal(2);
+      await messenger.connect(otherAccount).deny(firstIndex);
+      expect(
+        await messenger.connect(otherAccount).getNumOfOwnPending(),
+      ).to.equal(1);
     });
 
     it('Should send the correct amount of tokens', async function () {

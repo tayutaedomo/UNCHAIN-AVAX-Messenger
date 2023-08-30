@@ -108,6 +108,8 @@ contract Messenger is Ownable {
         );
 
         message.isPending = false;
+
+        _numOfPendingAtAddress[message.receiver] -= 1;
     }
 
     function _sendAvax(address payable _to, uint256 _amountInWei) private {
@@ -117,5 +119,9 @@ contract Messenger is Ownable {
 
     function getOwnMessages() public view returns (Message[] memory) {
         return _messagesAtAddress[msg.sender];
+    }
+
+    function getNumOfOwnPending() public view returns (uint256) {
+        return _numOfPendingAtAddress[msg.sender];
     }
 }
