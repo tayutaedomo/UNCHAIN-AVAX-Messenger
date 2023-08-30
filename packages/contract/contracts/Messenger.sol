@@ -48,10 +48,10 @@ contract Messenger is Ownable {
         address payable _receiver
     ) public payable {
         require(
-            _numOfPendingAtAddress[msg.sender] < numOfPendingLimits,
+            _numOfPendingAtAddress[_receiver] < numOfPendingLimits,
             "The receiver has reached the number of pending limits"
         );
-        _numOfPendingAtAddress[msg.sender] += 1;
+        _numOfPendingAtAddress[_receiver] += 1;
 
         console.log(
             "%s posts text:[%s] token:[%s]",
